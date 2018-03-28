@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Три Десятова](https://up.htmlacademy.ru/javascript/13/user/345843).
-* Наставник: `Неизвестно`.
+* Наставник: [Валерия Брониславовна](https://up.htmlacademy.ru/javascript/13/user/425717).
 
 ---
 
