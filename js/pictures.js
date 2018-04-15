@@ -18,7 +18,7 @@ var DESCRIPTIONS = [
   'Отдыхаем...',
   'Цените каждое мгновенье. Цените тех, кто рядом с вами и отгоняйте все сомненья. Не обижайте всех словами......',
   'Вот это тачка!'
-]
+];
 
 var Keycode = {
   ESC: 27,
@@ -40,7 +40,7 @@ var bigPictureClose = document.querySelector('#picture-cancel');
 
 // Получение случайного числа
 var getRandomNumber = function (min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
+  return Math.round(Math.random() * (max - min) + min);
 };
 
 
@@ -64,6 +64,19 @@ var copyArray = function (array) {
 };
 
 
+// Создание массива нужной длины
+var createArray = function (array, length) {
+  var newArray = [];
+
+  for (var i = 0; i < length; i++) {
+    var randomIndex = getRandomNumber(0, array.length - 1);
+    newArray[i] = array[randomIndex];
+  }
+
+  return newArray;
+};
+
+
 // Перемешивание массива
 var shuffleArray = function (array) {
   for (var i = 0; i < array.length; i++) {
@@ -75,10 +88,10 @@ var shuffleArray = function (array) {
 };
 
 
-// Создание массива комментов
+// Создание массива комментов. Не помню, что я пыталась тут получить
 var createComments = function () {
   var comments = [];
-  var sentences = shuffleArray(copyArray(SENTENCES));
+  var sentences = createArray(copyArray(SENTENCES), PICTURES_NUMBER);
   var randomLength = getRandomNumber(1, PICTURES_NUMBER);
 
   for (var i = 0; i < randomLength; i++) {
@@ -93,16 +106,30 @@ var createComments = function () {
 };
 
 
-// Создание массива подписей
-var createDescriptions = function () {
-  var descriptions = [];
-  var sentences = shuffleArray(copyArray(DESCRIPTIONS));
+// Потенциально универсальная функция
+var createSomeText = function (array) {
+  var newArray = [];
+  var text = createArray(copyArray(array), PICTURES_NUMBER);
 
   for (var i = 0; i < PICTURES_NUMBER; i++) {
-    descriptions[i] += sentences[i];
+    newArray[i] = text[i];
   }
 
-  return descriptions;
+  return shuffleArray(newArray);
+};
+
+
+// Создание массива подписей. Вот эта функция работает как надо. Из неё, наверное,
+// можно сделать универсальную, чтобы генерить и подписи, и комменты
+var createDescriptions = function () {
+  var descriptions = [];
+  var sentences = createArray(copyArray(DESCRIPTIONS), PICTURES_NUMBER);
+
+  for (var i = 0; i < PICTURES_NUMBER; i++) {
+    descriptions[i] = sentences[i];
+  }
+
+  return shuffleArray(descriptions);
 };
 
 
@@ -138,7 +165,7 @@ var getPicture = function (picture) {
 };
 
 
-//Создание какого-нибудь элемента
+// Создание какого-нибудь элемента
 var makeElement = function (tagName, className, text) {
   var element = document.createElement(tagName);
   element.classList.add(className);
@@ -151,7 +178,7 @@ var makeElement = function (tagName, className, text) {
 };
 
 
-//Отрисовка комментариев к большой фотке
+// Отрисовка комментариев к большой фотке
 var renderComments = function (picture) {
   var commentsList = document.querySelector('.social__comments');
   var comments = picture.comments;
@@ -193,7 +220,7 @@ var renderPictures = function (array) {
     currentPicture.addEventListener('click', function (evt) {
       evt.preventDefault();
       fillOverlay(evt.currentTarget);
-      // renderComments(array[i]);
+      renderComments(array[i]); // Вот это херня
     });
   }
 
