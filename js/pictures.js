@@ -31,6 +31,9 @@ var picturesList = document.querySelector('.pictures');
 var bigPicture = document.querySelector('.big-picture');
 var bigPictureImage = bigPicture.querySelector('.big-picture__img');
 var bigPictureImg = bigPictureImage.querySelector('img');
+var socialCaption = bigPicture.querySelector('.social__caption');
+var socialComments = bigPicture.querySelector('.social__comments');
+var socialComment = bigPicture.querySelector('.social__comment');
 var likesCount = bigPicture.querySelector('.likes-count');
 var commentsCount = bigPicture.querySelector('.comments-count');
 var socialCommentCount = bigPicture.querySelector('.social__comment-count');
@@ -80,7 +83,7 @@ var createArray = function (array, length) {
 // Перемешивание массива
 var shuffleArray = function (array) {
   for (var i = 0; i < array.length; i++) {
-    var randomIndex = Math.floor(Math.random() * i);
+    var randomIndex = getRandomNumber(0, array.length - 1);
     swapElements(array, i, randomIndex);
   }
 
@@ -88,26 +91,8 @@ var shuffleArray = function (array) {
 };
 
 
-// Создание массива комментов. Не помню, что я пыталась тут получить
-var createComments = function () {
-  var comments = [];
-  var sentences = createArray(copyArray(SENTENCES), PICTURES_NUMBER);
-  var randomLength = getRandomNumber(1, PICTURES_NUMBER);
-
-  for (var i = 0; i < randomLength; i++) {
-    var length = getRandomNumber(1, 2);
-
-    for (var j = 0; j < length; j++) {
-      comments[i] += sentences[j];
-    }
-  }
-
-  return comments;
-};
-
-
-// Потенциально универсальная функция
-var createSomeText = function (array) {
+// Потенциально универсальная функция для создания массива комментов или описаний
+var createTextArray = function (array) {
   var newArray = [];
   var text = createArray(copyArray(array), PICTURES_NUMBER);
 
@@ -115,37 +100,22 @@ var createSomeText = function (array) {
     newArray[i] = text[i];
   }
 
-  return shuffleArray(newArray);
-};
-
-
-// Создание массива подписей. Вот эта функция работает как надо. Из неё, наверное,
-// можно сделать универсальную, чтобы генерить и подписи, и комменты
-var createDescriptions = function () {
-  var descriptions = [];
-  var sentences = createArray(copyArray(DESCRIPTIONS), PICTURES_NUMBER);
-
-  for (var i = 0; i < PICTURES_NUMBER; i++) {
-    descriptions[i] = sentences[i];
-  }
-
-  return shuffleArray(descriptions);
+  return newArray;
 };
 
 
 // Создание массива фоточек
 var createPictures = function () {
   var pictures = [];
+  var comments = createTextArray(SENTENCES);
+  var descriptions = createTextArray(DESCRIPTIONS);
 
   for (var i = 0; i < PICTURES_NUMBER; i++) {
-    var comments = createComments();
-    var descriptions = createDescriptions();
-
     pictures[i] = {
       url: 'photos/' + (i + 1) + '.jpg',
       likes: getRandomNumber(15, 200),
-      comments: shuffleArray(comments),
-      descriptions: shuffleArray(descriptions)
+      comments: comments[i],
+      description: descriptions[i]
     };
   }
 
@@ -178,19 +148,55 @@ var makeElement = function (tagName, className, text) {
 };
 
 
-// Отрисовка комментариев к большой фотке
-var renderComments = function (picture) {
+// Отрисовка комментариев к большой фотке. Это какая-то херня
+// var renderComments = function (picture) {
+//   var commentsList = document.querySelector('.social__comments');
+//   var comments = picture.comments;
+//
+//   for (var i = 0; i < comments.length; i++) {
+//     var commentItem = makeElement('li', 'social__comment--text');
+//     var avatar = makeElement('img', 'social__picture');
+//
+//     avatar.src = 'img/avatar-' + getRandomNumber(1, 6) + '.svg';
+//     avatar.alt = 'Аватар комментатора фотографии';
+//     avatar.width = '35';
+//     avatar.height = '35';
+//
+//     commentItem.appendChild(avatar);
+//     commentsList.appendChild(commentItem);
+//   }
+//
+//   return commentsList;
+// };
+
+
+// Удаление комментариев
+var removeComment = function () {
   var commentsList = document.querySelector('.social__comments');
-  var comments = picture.comments;
 
-  for (var i = 0; i < comments.length; i++) {
-    var commentItem = makeElement('li', 'social__comment--text');
-    var avatar = makeElement('img', 'social__picture');
-
-    avatar.src = 'img/avatar-' + getRandomNumber(1, 6) + '.svg';
-    commentItem.appendChild(avatar);
-    commentsList.appendChild(commentItem);
+  while (commentsList.firstChild) {
+    commentsList.removeChild(commentsList.firstChild);
   }
+};
+
+
+// Добавление комментария
+var addComment = function () {
+  removeComment();
+
+  var commentsList = document.querySelector('.social__comments');
+  var commentItem = makeElement('li', 'social__comment--text');
+  var avatar = makeElement('img', 'social__picture');
+  var comment = SENTENCES[getRandomNumber(0, SENTENCES.length - 1)];
+
+  avatar.src = 'img/avatar-' + getRandomNumber(1, 6) + '.svg';
+  avatar.alt = 'Аватар комментатора фотографии';
+  avatar.width = '35';
+  avatar.height = '35';
+
+  commentItem.appendChild(avatar);
+  commentItem.appendChild(document.createTextNode(comment));
+  commentsList.appendChild(commentItem);
 
   return commentsList;
 };
@@ -201,6 +207,9 @@ var fillOverlay = function (picture) {
   bigPictureImg.src = picture.querySelector('.picture__img').getAttribute('src');
   likesCount.textContent = picture.querySelector('.picture__stat--likes').textContent;
   commentsCount.textContent = picture.querySelector('.picture__stat--comments').textContent;
+  socialCaption.textContent = DESCRIPTIONS[getRandomNumber(0, DESCRIPTIONS.length - 1)];
+
+  addComment();
 
   bigPicture.classList.remove('hidden');
   socialCommentCount.classList.add('visually-hidden');
@@ -220,7 +229,6 @@ var renderPictures = function (array) {
     currentPicture.addEventListener('click', function (evt) {
       evt.preventDefault();
       fillOverlay(evt.currentTarget);
-      renderComments(array[i]); // Вот это херня
     });
   }
 
@@ -228,10 +236,19 @@ var renderPictures = function (array) {
 };
 
 
+// Заполнение большой фоточки
+// var fillPicture = function (evt) {
+//   evt.preventDefault();
+//   fillOverlay(evt.currentTarget);
+//   renderComments(array[i]);
+// };
+
+
 // Закрытие большой фоточки
 var closeBigPicture = function () {
   bigPicture.classList.add('hidden');
   document.removeEventListener('keydown', onBigPictureCloseEscKeydown);
+  // removeComment();
 };
 
 
@@ -239,12 +256,17 @@ var closeBigPicture = function () {
 var onBigPictureCloseEscKeydown = function (evt) {
   if (evt.keyCode === Keycode.ESC) {
     closeBigPicture();
+    // removeComment();
   }
 };
 
+
+// Отрисока фоточек
 var pictures = createPictures();
 renderPictures(pictures);
 
+
+// Пошли обработчики
 bigPictureClose.addEventListener('click', function () {
   closeBigPicture();
 });
